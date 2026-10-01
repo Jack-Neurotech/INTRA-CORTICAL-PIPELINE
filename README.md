@@ -723,4 +723,3 @@ Alpha
 20-ms bin
 → At what temporal resolution was neural activity represented?
 ```
-
