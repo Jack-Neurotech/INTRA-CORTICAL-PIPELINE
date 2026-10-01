@@ -1,0 +1,2 @@
+cd ~/eeg-pipeline-rebuild/EEG\ Pipeline-AND-IONM-PIPELINE
+source .venv/bin/activate
