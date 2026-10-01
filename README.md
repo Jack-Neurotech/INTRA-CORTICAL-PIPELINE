@@ -1,75 +1,361 @@
-1. What does the Intracortical BCI Pipeline do?
-Reads recorded intracortical neural data from an NWB neurophysiology file.
-Extracts neural activity from the recorded population of neurons.
-Extracts behavioral data recorded at the same time, including finger velocity.
-Converts neural activity into numerical features that can be used by a machine-learning model.
-Bins the neural activity into 20-ms time windows so that neural activity can be represented consistently over time.
-Temporally aligns the neural activity with the behavioral measurements, making sure that each neural observation corresponds to the appropriate behavioral observation.
-Uses the activity of the neuron population as the input to a decoder.
-Uses finger velocity as the target that the decoder is trying to predict.
-Trains a Ridge regression model to learn the relationship between neural population activity and finger movement.
-Predicts finger velocity from neural activity, specifically:
-X-axis finger velocity
-Y-axis finger velocity
-Evaluates the predictions by comparing the predicted movement against the actual recorded movement.
-Calculates quantitative performance measures, including:
-R²
-RMSE
-MAE
-Pearson correlation
-In simple terms, the project takes:
-recorded activity from neurons → processes the neural activity → connects it to recorded movement → trains a decoder → predicts movement from neural activity.
+# Intracortical BCI Pipeline
 
-2. How it was Coded:
+# 1. What Is the Project and What Does It Do?
 
-   
-# PYTHON PRINCIPLES
+* **Project:** Intracortical BCI Neural Decoding Pipeline
 
-## Variables
+* **Purpose:** A Python-based neuroinformatics and computational neuroscience pipeline for loading recorded intracortical neural activity, extracting behavioral information, processing neural population activity, and decoding recorded finger movement.
 
-**Definition:** A variable stores information under a name.
+* **Input:** A recorded intracortical neurophysiology dataset stored in an NWB file.
 
-**How it was used:** Variables store the NWB recording, neural data, behavioral data, feature matrices, decoder settings, and results.
+* **Primary goal:** Convert recorded neural activity into numerical features that can be used to predict recorded behavioral movement.
+
+* **The pipeline performs the following steps:**
+
+  * Loads an NWB neurophysiology file.
+  * Extracts the recorded population of neurons.
+  * Determines the number of recorded neurons.
+  * Determines the recording duration.
+  * Extracts the trial table.
+  * Identifies the recorded behavioral variables.
+  * Selects finger velocity as the behavioral target.
+  * Extracts the continuous finger-velocity measurements.
+  * Converts neural activity into numerical population features.
+  * Bins the neural activity into 20-ms time windows.
+  * Temporally aligns the neural population activity with the behavioral measurements.
+  * Removes invalid neural or behavioral measurements.
+  * Creates the neural feature matrix used by the decoder.
+  * Creates the behavioral target matrix used by the decoder.
+  * Divides the aligned dataset into training and testing data.
+  * Trains a Ridge regression decoder.
+  * Uses neural population activity to predict finger velocity.
+  * Predicts two movement dimensions:
+
+    * X-axis finger velocity
+    * Y-axis finger velocity
+  * Evaluates the decoder predictions against the recorded behavioral measurements.
+  * Calculates quantitative performance measurements.
+  * Reports the decoder results.
+
+* **Neural input:**
+
+  * Recorded activity from 130 neurons.
+  * Neural activity is represented as a population feature matrix.
+  * The population feature matrix contained:
+
+```text
+32,455 × 130
+```
+
+* This represents:
+
+```text
+32,455 time points
+130 neurons
+```
+
+* **Behavioral target:**
+
+  * Recorded finger velocity.
+  * The target contains two movement dimensions:
+
+```text
+X velocity
+Y velocity
+```
+
+* The behavioral target contained:
+
+```text
+32,440 × 2
+```
+
+* **Temporal processing:**
+
+  * Neural activity is represented using 20-ms bins.
+  * Behavioral measurements are temporally aligned with the neural population activity.
+  * The final aligned dataset contained:
+
+```text
+32,440 neural samples
+32,440 behavioral samples
+```
+
+* **Decoder:**
+
+  * The project uses Ridge regression.
+  * Neural population activity is the input.
+  * Finger velocity is the prediction target.
+
+* **Decoder configuration:**
+
+```python
+test_size=0.20
+alpha=1.0
+```
+
+* **Evaluation measurements:**
+
+  * R²
+  * RMSE
+  * MAE
+  * Pearson correlation
+
+* **Results:**
+
+  * X-axis finger velocity:
+
+```text
+R²:        0.1284795848
+RMSE:      75.48333927
+MAE:       43.40040125
+Pearson:   0.3638689504
+```
+
+* Y-axis finger velocity:
+
+```text
+R²:        0.1062295295
+RMSE:      58.70979109
+MAE:       37.02067597
+Pearson:   0.3310680174
+```
+
+* **Overall concept:**
+
+  * The project takes recorded intracortical neural activity.
+  * Python extracts the neural and behavioral information.
+  * Neural activity is converted into numerical population features.
+  * Neural and behavioral measurements are temporally aligned.
+  * The neural population becomes the input to a machine-learning decoder.
+  * Finger velocity becomes the target.
+  * The Ridge decoder learns the relationship between neural activity and movement.
+  * The trained decoder predicts finger velocity from neural activity.
+  * Statistical measurements quantify the relationship between predicted and recorded movement.
+
+* **In simple terms:**
+
+  * **Recorded neural activity → numerical neural features → temporal alignment → Ridge decoder → predicted finger movement → statistical evaluation**
+
+* **What the project demonstrates:**
+
+  * Python programming
+  * Scientific computing
+  * Numerical data processing
+  * Computational neuroscience
+  * Neuroinformatics
+  * Intracortical neural data analysis
+  * Neural population analysis
+  * Temporal data alignment
+  * Machine learning
+  * Neural decoding
+  * Regression
+  * Quantitative evaluation
+
+# 2. Python Principles, General Structure, Packages, and Associated Principles
+
+## A. Python Principles and the General Structure
+
+The intracortical BCI pipeline is built from fundamental Python programming concepts. These concepts provide the structure that allows the scientific packages, neural data, behavioral data, and machine-learning decoder to work together.
+
+---
+
+### Variables
+
+* Variables store information so the program can use it later.
+* The pipeline uses variables to store neural data, behavioral data, recording information, feature matrices, decoder settings, and results.
 
 ```python
 bin_size = 0.020
 
 behavior_target_name = "finger_vel"
 
-number_of_neurons = neural_data.get_number_of_units()
+number_of_neurons = (
+    neural_data.get_number_of_units()
+)
 ```
+
+In these examples:
+
+* `bin_size` stores the temporal bin size.
+* `behavior_target_name` stores the name of the behavioral variable.
+* `number_of_neurons` stores the number of recorded neurons.
 
 ---
 
-## Functions
+### Data Types
 
-**Definition:** A function is a reusable block of code that performs a specific task.
+Python can store different kinds of information.
 
-**How it was used:** Functions divide the pipeline into individual operations such as loading data, extracting neurons, creating features, aligning data, training the decoder, and evaluating results.
+Common types used in the pipeline include:
+
+* **Numbers** — bin sizes, recording durations, statistical measurements, and decoder parameters.
+* **Strings** — behavioral-variable names and file information.
+* **Lists** — collections of behavioral objects or column names.
+* **Arrays** — neural and behavioral measurements.
+* **Objects** — organized structures containing data and functionality.
+* **Dictionaries** — collections of named results such as decoder metrics.
+
+Example:
 
 ```python
-nwbfile = reader.load()
+behavior_target_name = "finger_vel"
 
-neural_data.extract_units()
-
-behavior_data.extract_trials()
-
-aligned_times, aligned_neural, aligned_behavior = (
-    aligner.align_by_bin()
-)
-
-decoder.train()
-
-metrics = decoder.evaluate()
+bin_size = 0.020
 ```
+
+The first variable contains text, while the second contains a numerical value.
 
 ---
 
-## Classes
+### Lists and Collections
 
-**Definition:** A class is a blueprint for creating objects that contain related data and functions.
+Lists allow multiple pieces of information to be stored together.
 
-**How it was used:** The project separates the different stages of the pipeline into specialized classes.
+For example, the trial table contains multiple column names:
+
+```python
+trial_columns = (
+    behavior_data.get_trial_columns()
+)
+```
+
+The program can then work with the collection of available trial variables.
+
+---
+
+### Indexing
+
+Indexing allows Python to access a specific element inside a collection.
+
+```python
+aligned_times[0]
+```
+
+gets the first aligned time point.
+
+```python
+aligned_times[-1]
+```
+
+gets the final aligned time point.
+
+Indexing is important when working with individual neural samples, behavioral measurements, and time points.
+
+---
+
+### Functions
+
+Functions organize operations into reusable pieces of code.
+
+```python
+decoder.train()
+```
+
+A function can:
+
+1. Receive input.
+2. Process the input.
+3. Return a result.
+
+The general structure is:
+
+**Input → Processing → Output**
+
+Functions allow different parts of the intracortical pipeline to perform specific operations without placing every operation into one large block of code.
+
+---
+
+### Loops
+
+Loops allow Python to repeat an operation.
+
+```python
+for name in behavior_objects:
+
+    print(name)
+```
+
+The pipeline uses loops to work through collections of behavioral objects and other recorded information.
+
+Instead of manually processing every item, Python repeats the same operation for each item.
+
+---
+
+### Conditional Statements
+
+Conditional statements allow the program to make decisions.
+
+```python
+if not np.all(valid_mask):
+
+    aligned_times = aligned_times[
+        valid_mask
+    ]
+```
+
+The condition determines whether invalid data need to be removed.
+
+Conditions allow the pipeline to:
+
+* Check whether data are valid.
+* Check whether required information exists.
+* Determine whether measurements should be retained.
+* Prevent invalid values from entering the decoder.
+
+---
+
+### Boolean Logic
+
+Boolean logic allows Python to evaluate conditions as `True` or `False`.
+
+The pipeline combines neural and behavioral validity conditions:
+
+```python
+valid_mask = (
+    np.all(
+        np.isfinite(aligned_neural),
+        axis=1
+    )
+    &
+    np.all(
+        np.isfinite(aligned_behavior),
+        axis=1
+    )
+)
+```
+
+The `&` operator means both conditions must be satisfied.
+
+Therefore, a sample is retained only when:
+
+* The neural data are valid.
+* The behavioral data are valid.
+
+---
+
+### Imports
+
+Imports allow one Python module to access functionality created in another module.
+
+```python
+from nwb_reader import NWBReader
+from neural_data import NeuralData
+from behavior import BehaviorData
+from features import FeatureExtractor
+from alignment import TemporalAligner
+from decoder import NeuralDecoder
+```
+
+The imports connect the main pipeline to the individual components that perform the scientific processing.
+
+---
+
+### Classes
+
+A class is a blueprint for creating objects that contain related data and functions.
+
+The project separates different stages of the pipeline into specialized classes.
 
 ```python
 reader = NWBReader()
@@ -88,15 +374,15 @@ aligner = TemporalAligner(...)
 decoder = NeuralDecoder(...)
 ```
 
-Each class has a specific responsibility rather than putting the entire pipeline into one large block of code.
+Each class has a specific responsibility.
 
 ---
 
-## Objects
+### Objects
 
-**Definition:** An object is a specific instance created from a class.
+An object is a specific instance created from a class.
 
-**How it was used:** Objects allow each part of the pipeline to maintain its own data and perform operations on that data.
+For example:
 
 ```python
 decoder = NeuralDecoder(
@@ -109,11 +395,11 @@ The `decoder` object contains the settings and methods needed to prepare, train,
 
 ---
 
-## Methods
+### Methods
 
-**Definition:** A method is a function that belongs to an object.
+Methods are functions associated with an object.
 
-**How it was used:** The pipeline uses methods to perform operations on specific components.
+For example:
 
 ```python
 neural_data.extract_units()
@@ -124,24 +410,22 @@ behavior_data.extract_trials()
 ```
 
 ```python
-feature_extractor.create_population_features(
-    bin_size=0.020
-)
-```
-
-```python
 decoder.train()
 ```
 
-The method operates on the object it belongs to.
+```python
+decoder.evaluate()
+```
+
+The method performs an operation using the information contained within the object.
 
 ---
 
-## Arrays
+### Arrays
 
-**Definition:** An array is an organized collection of numerical values.
+Arrays are organized collections of numerical values.
 
-**How it was used:** Neural recordings and behavioral recordings contain large amounts of numerical data, so the pipeline represents them as NumPy arrays.
+Neural recordings contain large numbers of measurements, so the pipeline represents neural and behavioral data using numerical arrays.
 
 For example:
 
@@ -151,7 +435,7 @@ population_features
 
 contains the neural population activity.
 
-The resulting matrix was:
+The population feature matrix was:
 
 ```text
 32,455 × 130
@@ -164,7 +448,7 @@ meaning:
 130 neurons
 ```
 
-The behavioral target was represented as:
+The behavioral target was:
 
 ```text
 32,440 × 2
@@ -179,109 +463,11 @@ meaning:
 
 ---
 
-## Indexing
+### Data Validation
 
-**Definition:** Indexing accesses a specific element or section of a data structure.
+Data validation checks whether information meets the requirements of the program before it is processed.
 
-**How it was used:** The pipeline accesses individual time points, neurons, trials, and prediction values through indexing.
-
-```python
-aligned_times[0]
-```
-
-gets the first aligned time point.
-
-```python
-aligned_times[-1]
-```
-
-gets the final aligned time point.
-
----
-
-## Conditional Statements
-
-**Definition:** Conditional statements allow Python to make decisions based on a condition.
-
-**How it was used:** The pipeline checks whether the data are valid before sending them into the decoder.
-
-```python
-if not np.all(valid_mask):
-
-    aligned_times = aligned_times[
-        valid_mask
-    ]
-
-    aligned_neural = aligned_neural[
-        valid_mask
-    ]
-
-    aligned_behavior = aligned_behavior[
-        valid_mask
-    ]
-```
-
-This ensures that invalid measurements are removed before machine learning.
-
----
-
-## Boolean Logic
-
-**Definition:** Boolean logic evaluates conditions as `True` or `False`.
-
-**How it was used:** The pipeline combines multiple conditions when determining whether neural and behavioral measurements are valid.
-
-```python
-np.all(
-    np.isfinite(aligned_neural),
-    axis=1
-)
-```
-
-checks whether all neural features in a row contain valid finite numbers.
-
-The pipeline also checks the behavioral data:
-
-```python
-np.all(
-    np.isfinite(aligned_behavior),
-    axis=1
-)
-```
-
-The two conditions are combined with:
-
-```python
-&
-```
-
-so that a time point is retained only when both neural and behavioral data are valid.
-
----
-
-## Loops
-
-**Definition:** A loop repeats code for multiple pieces of information.
-
-**How it was used:** Loops allow the pipeline to process collections of trials, behavioral variables, neurons, and other recorded information without manually writing the same operation repeatedly.
-
-For example:
-
-```python
-for name in behavior_objects:
-
-    print(name)
-```
-
-prints each discovered behavioral object.
-
----
-
-## Data Validation
-
-**Definition:** Data validation checks whether information meets the requirements of the program before it is processed.
-
-**How it was used:** The pipeline checks the neural and behavioral data before training the decoder.
+The pipeline checks the neural and behavioral data before training the decoder.
 
 ```python
 valid_mask = (
@@ -297,15 +483,15 @@ valid_mask = (
 )
 ```
 
-This prevents `NaN` and infinite values from being passed into the model.
+This prevents `NaN` and infinite values from being passed into the machine-learning model.
 
 ---
 
-## Object-Oriented Programming
+### Object-Oriented Programming
 
-**Definition:** Object-oriented programming organizes a program into objects that contain related data and operations.
+Object-oriented programming organizes a program into objects that contain related data and operations.
 
-**How it was used:** The entire pipeline is divided into specialized objects.
+The pipeline is divided into specialized objects:
 
 ```text
 NWBReader
@@ -327,11 +513,11 @@ This makes the project easier to understand, modify, test, and reuse.
 
 ---
 
-## Modular Programming
+### Modular Programming
 
-**Definition:** Modular programming divides a large program into smaller independent components.
+Modular programming divides a large program into smaller independent components.
 
-**How it was used:** Instead of putting the entire intracortical decoder into one Python file, the project separates functionality into modules such as:
+The intracortical pipeline separates functionality into modules such as:
 
 ```text
 nwb_reader.py
@@ -351,15 +537,15 @@ For example:
 from neural_data import NeuralData
 ```
 
-allows the main pipeline to use the neural-data module without rewriting its implementation.
+allows the main program to use the neural-data module without rewriting its implementation.
 
 ---
 
-## Data Flow
+### Data Flow
 
-**Definition:** Data flow is the movement and transformation of information through a program.
+Data flow describes how information moves through the program.
 
-**How it was used:** The project passes data from one processing stage to the next.
+The intracortical pipeline passes information through several processing stages:
 
 ```text
 NWB file
@@ -372,24 +558,24 @@ Population features
    ↓
 Aligned neural data
    ↓
-Decoder
+Behavioral target
+   ↓
+Ridge decoder
    ↓
 Predictions
    ↓
 Evaluation metrics
 ```
 
-The Python code therefore acts as a series of transformations, where the output from one stage becomes the input to the next.
+The Python code therefore acts as a sequence of transformations where the output from one stage becomes the input to the next.
 
 ---
 
-## Exception Handling
+### Exception Handling
 
-**Definition:** Exceptions allow a program to identify conditions where it cannot safely continue.
+Exceptions allow a program to identify conditions where it cannot safely continue.
 
-**How it was used:** The project uses errors to prevent invalid or missing data from silently entering the pipeline.
-
-For example, the behavioral-data component checks whether a trial table exists before attempting to use it.
+For example, the behavioral-data component checks whether a trial table exists:
 
 ```python
 if self.nwbfile.trials is None:
@@ -400,17 +586,17 @@ if self.nwbfile.trials is None:
     )
 ```
 
-This makes failures explicit instead of allowing incorrect data to propagate through the analysis.
+This prevents missing information from silently entering the analysis.
 
 ---
 
-## Numerical Computing
+### Numerical Computing
 
-**Definition:** Numerical computing means using mathematical operations on numerical data.
+Numerical computing means performing mathematical operations on numerical data.
 
-**How it was used:** This is fundamental to the intracortical pipeline because neural recordings are numerical measurements.
+This is fundamental to the intracortical pipeline because neural recordings are numerical measurements.
 
-NumPy is used to perform operations such as:
+NumPy is used for operations such as:
 
 ```python
 np.asarray(...)
@@ -422,24 +608,17 @@ np.isfinite(...)
 
 and array-based calculations.
 
-The numerical data ultimately become the input to the machine-learning model.
+The numerical neural data ultimately become the input to the decoder.
 
 ---
 
-## Machine-Learning Abstraction
+### Machine-Learning Abstraction
 
-**Definition:** Abstraction means using a higher-level object or function without needing to manually implement every underlying mathematical operation.
+Abstraction means using a higher-level object or function without manually implementing every underlying mathematical operation.
 
-**How it was used:** Instead of manually implementing Ridge regression mathematics, the decoder uses a machine-learning model through the project's decoder class.
+The pipeline does not manually implement all of the mathematics required for Ridge regression.
 
-```python
-decoder = NeuralDecoder(
-    test_size=0.20,
-    alpha=1.0
-)
-```
-
-The decoder then handles:
+Instead, the decoder provides an interface for preparing, training, predicting, and evaluating the model.
 
 ```python
 decoder.prepare_data(...)
@@ -451,11 +630,242 @@ decoder.evaluate()
 decoder.get_predictions()
 ```
 
-This allows the project to focus on the **neuroscience data pipeline and interpretation** while the machine-learning library handles the underlying regression implementation. 
+This allows the project to focus on the neuroscience data-processing pipeline while the machine-learning implementation handles the underlying regression calculations.
 
-3. Explain Statistics:
+## General Structure of the Intracortical BCI Pipeline
 
-   # STATISTICS
+The fundamental structure of the pipeline is:
+
+**1. Input**
+
+* Locate and load the NWB neurophysiology file.
+* Create an NWB data object.
+
+**2. Neural Data Extraction**
+
+* Extract the recorded neurons.
+* Determine the number of neurons.
+* Determine the recording duration.
+
+**3. Behavioral Data Extraction**
+
+* Extract the trial table.
+* Identify behavioral variables.
+* Select finger velocity as the behavioral target.
+
+**4. Feature Extraction**
+
+* Convert neural activity into numerical features.
+* Create population-level neural features.
+* Represent neural activity using 20-ms bins.
+
+**5. Temporal Alignment**
+
+* Match neural population activity with behavioral measurements.
+* Create paired neural and behavioral observations.
+
+**6. Data Validation**
+
+* Check for invalid numerical values.
+* Remove invalid observations.
+
+**7. Decoder Preparation**
+
+* Create the training dataset.
+* Create the testing dataset.
+* Separate neural inputs from behavioral targets.
+
+**8. Machine Learning**
+
+* Train a Ridge regression model.
+* Learn the relationship between neural population activity and finger velocity.
+
+**9. Prediction**
+
+* Use neural activity to predict finger movement.
+* Generate X and Y finger-velocity predictions.
+
+**10. Evaluation**
+
+* Compare predicted movement against recorded movement.
+* Calculate R².
+* Calculate RMSE.
+* Calculate MAE.
+* Calculate Pearson correlation.
+
+The overall computational pattern is therefore:
+
+**NWB File → Extract Neural Data → Extract Behavior → Create Features → Align Data → Validate Data → Train Decoder → Predict Movement → Evaluate Predictions**
+
+# B. Packages and the Python Principles Associated With Them
+
+## NumPy
+
+**Purpose:**
+
+* Numerical computing.
+* Numerical array processing.
+* Data validation.
+* Mathematical operations on neural and behavioral data.
+
+### Python principles associated with NumPy
+
+* Variables
+* Arrays
+* Indexing
+* Slicing
+* Functions
+* Mathematical operations
+* Boolean logic
+* Iteration
+
+Example:
+
+```python
+np.asarray(...)
+```
+
+converts recorded data into numerical array structures that Python can process.
+
+The pipeline also uses:
+
+```python
+np.isfinite(...)
+```
+
+to identify valid numerical values.
+
+NumPy therefore provides the numerical foundation for processing the neural and behavioral datasets.
+
+---
+
+## PyNWB
+
+**Purpose:**
+
+* Working with NWB neurophysiology files.
+* Reading structured neurophysiology recordings.
+* Accessing neural units and behavioral information.
+
+### Python principles associated with PyNWB
+
+* Objects
+* Attributes
+* Methods
+* Variables
+* Functions
+* Data structures
+
+The NWB file is loaded into a Python object.
+
+The pipeline can then access information contained within that object, including:
+
+* Neural recordings
+* Recorded units
+* Trial information
+* Behavioral measurements
+* Recording metadata
+
+The general relationship is:
+
+**NWB File → Python NWB Object → Neural and Behavioral Data**
+
+---
+
+## scikit-learn
+
+**Purpose:**
+
+* Machine learning.
+* Regression.
+* Model training.
+* Prediction.
+* Model evaluation.
+
+The intracortical pipeline uses Ridge regression to decode finger velocity from neural population activity.
+
+### Python principles associated with scikit-learn
+
+* Objects
+* Classes
+* Methods
+* Functions
+* Variables
+* Arrays
+* Abstraction
+
+The decoder provides a structured interface for:
+
+```python
+decoder.prepare_data(...)
+```
+
+```python
+decoder.train()
+```
+
+```python
+decoder.evaluate()
+```
+
+```python
+decoder.get_predictions()
+```
+
+The machine-learning package performs the underlying regression calculations.
+
+---
+
+## pathlib
+
+**Purpose:**
+
+* Managing file paths.
+* Identifying the NWB file.
+* Working with files and directories.
+
+### Python principles associated with pathlib
+
+* Objects
+* Variables
+* Methods
+* Operators
+
+A path can be represented as a Python object rather than manually constructing a long text path.
+
+The general concept is:
+
+**File location → Path object → File access**
+
+---
+
+## How the Packages Work Together
+
+The packages perform different jobs within the computational pipeline.
+
+**PyNWB**
+
+→ Provides access to the recorded neurophysiology data.
+
+**NumPy**
+
+→ Represents and processes the numerical neural and behavioral measurements.
+
+**scikit-learn**
+
+→ Trains the Ridge decoder and generates predictions.
+
+**pathlib**
+
+→ Handles file locations and paths.
+
+The Python programming principles provide the structure connecting them:
+
+**Variables → Functions → Classes → Objects → Methods → Arrays → Conditions → Data Validation → Data Flow → Machine Learning**
+
+Together, these principles and packages form the computational foundation of the intracortical BCI pipeline.
+
+# 3. Statistics
 
 ## R² — Coefficient of Determination
 
@@ -467,7 +877,7 @@ This allows the project to focus on the **neuroscience data pipeline and interpr
 metrics["r2"]
 ```
 
-Your results:
+**Results:**
 
 ```text
 X: 0.1285
@@ -478,15 +888,15 @@ Y: 0.1062
 
 ## RMSE — Root Mean Squared Error
 
-**Definition:** Measures the typical size of the prediction error while giving larger errors more influence.
+**Definition:** Measures the typical size of prediction errors while giving larger errors more influence.
 
-**How it was used:** It compares the predicted finger velocity against the actual finger velocity.
+**How it was used:** It compares predicted finger velocity against actual recorded finger velocity.
 
 ```python
 metrics["rmse"]
 ```
 
-Your results:
+**Results:**
 
 ```text
 X: 75.4833
@@ -497,15 +907,15 @@ Y: 58.7098
 
 ## MAE — Mean Absolute Error
 
-**Definition:** Measures the average absolute difference between the predicted and actual finger velocity.
+**Definition:** Measures the average absolute difference between predicted and actual finger velocity.
 
-**How it was used:** It provides an error measurement that is easier to interpret than RMSE because every error contributes according to its absolute size.
+**How it was used:** It provides an error measurement based on the absolute size of each prediction error.
 
 ```python
 metrics["mae"]
 ```
 
-Your results:
+**Results:**
 
 ```text
 X: 43.4004
@@ -526,7 +936,7 @@ metrics["correlation_x"]
 metrics["correlation_y"]
 ```
 
-Your results:
+**Results:**
 
 ```text
 X: 0.3639
@@ -537,9 +947,9 @@ Y: 0.3311
 
 ## Training Set
 
-**Definition:** The portion of the neural dataset used to teach the Ridge decoder the relationship between neural activity and finger velocity.
+**Definition:** The portion of the neural dataset used to train the Ridge decoder.
 
-**How it was used:** Your decoder used 80% of the aligned data for training.
+**How it was used:** The decoder used 80% of the aligned data for training.
 
 ```text
 25,952 samples
@@ -549,9 +959,9 @@ Y: 0.3311
 
 ## Testing Set
 
-**Definition:** The portion of the dataset that is kept separate from training and used to evaluate the trained decoder.
+**Definition:** The portion of the dataset kept separate from training and used to evaluate the trained decoder.
 
-**How it was used:** Your decoder used 20% of the aligned data for testing.
+**How it was used:** The decoder used 20% of the aligned data for testing.
 
 ```text
 6,488 samples
@@ -608,7 +1018,7 @@ The value controls how strongly the model penalizes large regression coefficient
 bin_size = 0.020
 ```
 
-The neural activity is converted into population-level measurements at this time resolution before being aligned with finger velocity.
+The neural activity is converted into population-level measurements at this temporal resolution before being aligned with finger velocity.
 
 ---
 
@@ -692,7 +1102,7 @@ y = finger velocity
 **Result:**
 
 ```text
-0.3310680174
+0.3310680170
 ```
 
 ---
@@ -722,4 +1132,14 @@ Alpha
 
 20-ms bin
 → At what temporal resolution was neural activity represented?
+
+Population feature matrix
+→ How was the activity of the neuron population represented?
+
+Behavioral target matrix
+→ What movement was the decoder trained to predict?
+
+Aligned dataset
+→ How were neural activity and movement paired in time?
 ```
+
